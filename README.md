@@ -7,3 +7,4 @@ Projeto Integrador - SENAC
 - Cláudio Arthur Fontainha
 - Amanda Fraga da Rocha
 - Emerson Macedo
+- Amanda Baldini
