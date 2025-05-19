@@ -1,7 +1,7 @@
 # Seções
 
 ## Instalação e Preparação do Ambiente ?
-Verificar a duração máxima do vídeo; se for curto, não devem esperar pela instalação
+Verificar a duração máxima do vídeo nos objetivos do PI; se for curto, não deve ser esperado que gravemos o processo de instalação
 
 ## Criação de usuários
 - Clicar em entrar ou agendar consulta
