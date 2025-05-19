@@ -1,4 +1,4 @@
-# SmartKids - Sistema de Agendamento
+# SmartKids - Sistema de Agendamento Entre Pacientes e Profissionais da Saúde
 
 ## Requisitos
 - Node.js (v18 ou superior)
