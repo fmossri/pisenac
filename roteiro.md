@@ -26,10 +26,10 @@ Verificar a duração máxima do vídeo nos objetivos do PI; se for curto, não 
 ## Confirmação e Finalização de atendimento
 - Logar como usuário tipo profissional
 - Navegar para a página `Histórico` e verificar que existem quatro entradas com status `Aguardando confirmação` associadas ao nome do paciente que solicitou atendimento
-- Nevagar para Consultas
+- Nevagar para `Consultas`
 - Clicar em Confirmar em duas consulta
 - Clicar em Cancelar em uma consulta
-- Navegar para Histórico e verificar que existem três entradas: duas com status `Confirmada` e uma com status `Aguardando Confirmação`
+- Navegar para `Histórico` e verificar que existem três entradas: duas com status `Confirmada` e uma com status `Aguardando Confirmação`
 - Navegar para `Consultas` e clicar `Preencher Histórico` em uma consulta
 - Inserir texto à gosto
 - Navegar para `Histórico` e verificar que existem três entradas: uma com status `Confirmada`, uma com status `Aguardando Confirmação` e uma com status `Finalizada`
