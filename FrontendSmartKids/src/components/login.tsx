@@ -1,33 +1,53 @@
 'use client';
 
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn, useSession } from 'next-auth/react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
+  const { data: session } = useSession();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    });
+    setError('');
 
-    if (!res?.error) {
-      router.push('/agendamentos');
-    } else {
-      alert('Login falhou');
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError('Email ou senha inválidos');
+        setPassword('');
+      } else {
+        console.log('Login bem sucedido, session:', session);
+        console.log('Tipo de usuário:', session?.user?.tipo);
+        // Wait a moment for the session to be set
+        setTimeout(() => {
+          router.push('/agendamentos');
+        }, 100);
+      }
+    } catch (err) {
+      console.error('Erro ao fazer login:', err);
+      setError('Erro ao fazer login');
+      setPassword('');
     }
   };
 
+  // Debug log whenever session changes
+  console.log('Sessão atual:', session);
+  console.log('Tipo de usuário da sessão:', session?.user?.tipo);
+
   return (
-    <main className="min-h-197 bg-gradient-to-b from-gray-50 to-gray-200 flex items-center justify-center p-6 font-[family-name:var(--font-geist-sans)]">
-      <div className="bg-white rounded-2xl shadow-xl p-10 flex flex-col items-center gap-6 w-full max-w-md text-center">
+    
+      <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl p-10 flex flex-col items-center gap-6 w-full max-w-md text-center">
         <div className="text-2xl text-green-700 font-bold">
           <h1>Bem-vindo ao <span className="text-green-600">SmartKids</span></h1>
           <h2 className="text-base font-normal text-gray-600 mt-1">
@@ -65,8 +85,11 @@ export default function Login() {
           >
             Entrar
           </button>
+
+          {error && (
+            <p className="text-red-500 text-sm mt-2">{error}</p>
+          )}
         </form>
       </div>
-    </main>
   );
 }

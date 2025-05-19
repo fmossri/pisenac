@@ -2,10 +2,8 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import HistoricoPaciente from '@/components/historyPacient'
-import HistoricoMedico from '@/components/historyDoctor'
 import { useSession } from 'next-auth/react'
-
+import History from '@/components/history'
 export default function HistoryPage() {
   const { data: session } = useSession()
   const router = useRouter()
@@ -15,16 +13,10 @@ export default function HistoryPage() {
       router.push('/auth/login')
     }
   }, [session, router])
-
-  console.log('Session:', session)
   
   return (
-    <main className="bg-gray-50">
-      {session.user.tipo === 1 ? (
-        <HistoricoPaciente/>
-        ) : (
-          <HistoricoMedico/>
-        )}
+    <main className="flex-1 bg-gradient-to-b from-green-50 to-green-100 dark:from-black dark:to-gray-900 flex flex-col items-center pt-12 font-[family-name:var(--font-geist-sans)]">
+      <History/>
     </main>
   )
 }
