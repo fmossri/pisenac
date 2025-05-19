@@ -1,8 +1,9 @@
 # pisenac
 Projeto Integrador - SENAC
 
-Membros:
-Laura Golombieski
-Francisco Mossri
-Cláudio Arthur Fontainha
-Amanda Fraga da Rocha
+## Membros:
+- Laura Golombieski
+- Francisco Mossri
+- Cláudio Arthur Fontainha
+- Amanda Fraga da Rocha
+- Emerson Macedo
