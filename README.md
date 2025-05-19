@@ -125,11 +125,3 @@ sudo service mysql start   # Inicia o serviço
 1. Verifique se o backend está rodando
 2. Confirme se `NEXT_PUBLIC_API_URL` está configurado corretamente
 3. Verifique os logs do console do navegador
-
-## Contribuição
-
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request 
