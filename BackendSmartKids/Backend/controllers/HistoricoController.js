@@ -1,27 +1,13 @@
 const Historico = require("../models/Historico");
-
+const User = require("../models/User");
+const Cadastro = require("../models/Cadastro");
 
 
 class HistoricoController{
     async create(req, res){
-        var {idHistorico,Paciente,Profissional,dtAgendamento,dtConfirmacao,dtAtendimento,historico} = req.body;
+        var {Paciente,Profissional,dtConfirmacao,dtAtendimento,historico} = req.body;
         
-        if(idHistorico == undefined){
-            res.status(400);
-            res.json({err: "O codigo histórico  inválido!"})
-            return;
-        }
-
-        var idHistoricoExists = await Historico.findById(idHistorico);
-
-        if(idHistoricoExists){
-            res.status(406);
-            res.json({err: "O Histórico já está cadastrado!"})
-            return;
-        }
-
-        
-        await Historico.new(idHistorico,Paciente,Profissional,dtAgendamento,dtConfirmacao,dtAtendimento,historico);
+        await Historico.new(Paciente,Profissional,dtConfirmacao,dtAtendimento,historico);
         
         res.status(200);
         res.send("Tudo OK!");
@@ -45,19 +31,70 @@ class HistoricoController{
         }
     }
 
+    async findByUsuario(req, res) {
+        const idUsuario = req.params.idUsuario;
+
+        const user = await User.findById(idUsuario);
+        if(!user){
+            res.status(404);
+            res.json({err: "Usuário não encontrado!"});
+            return;
+        }
+        let historicos;
+        if (user.tipoUsuario == 1){
+            historicos = await Historico.findByPaciente(idUsuario);
+            // Fetch profissional details for each historico
+            for (let historico of historicos) {
+                const profissional = await Cadastro.findByUsuario(historico.Profissional);
+                if (profissional) {
+                    historico.profissional = {
+                        nome: profissional.nome,
+                        sobrenome: profissional.sobreNome 
+                    };
+                }
+            }
+
+        }else if (user.tipoUsuario == 2){
+            historicos = await Historico.findByProfissional(idUsuario);
+            // Fetch paciente details for each historico
+            for (let historico of historicos) {
+                const paciente = await Cadastro.findByUsuario(historico.Paciente);
+                if (paciente) {
+                    historico.paciente = {
+                        nome: paciente.nome,
+                        sobrenome: paciente.sobreNome
+                    };
+                }
+            }
+
+        } else {
+            return res.status(400).json({error: "Tipo de usuário inválido"});
+        }
+
+
+        res.json(historicos);
+    }
+
+
     async edit(req, res){
-        var {idHistorico,Paciente,Profissional,dtAgendamento,dtConfirmacao,dtAtendimento,historico} = req.body;
-        var result = await Historico.update(idHistorico,Paciente,Profissional,dtAgendamento,dtConfirmacao,dtAtendimento,historico);
-        if(result != undefined){
-            if(result.status){
-                res.status(200);
-                res.send("Tudo OK!");
+        try{
+            var {idHistorico,Paciente,Profissional,dtConfirmacao,dtAtendimento,historico} = req.body;
+
+            var result = await Historico.update(idHistorico,Paciente,Profissional,dtConfirmacao,dtAtendimento,historico);
+            if(result != undefined){
+                if(result.status){
+                    res.status(200);
+                    res.send("Tudo OK!");
+                }else{
+                    res.status(406);
+                    res.send(result.err)
+                }
             }else{
                 res.status(406);
-                res.send(result.err)
+                res.send("Ocorreu um erro no servidor!");
             }
-        }else{
-            res.status(406);
+        }catch(err){
+            res.status(500);
             res.send("Ocorreu um erro no servidor!");
         }
     }

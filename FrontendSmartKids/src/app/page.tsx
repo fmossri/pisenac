@@ -5,8 +5,8 @@ import { signIn } from 'next-auth/react';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex flex-col items-center pt-12 font-[family-name:var(--font-geist-sans)]">
-      <div className="bg-white rounded-2xl shadow-xl p-10 flex flex-col items-center gap-6 max-w-4xl w-full text-center">
+    <main className="flex-1 bg-gradient-to-b from-green-50 to-green-100 dark:from-black dark:to-gray-900 flex flex-col items-center pt-12 font-[family-name:var(--font-geist-sans)]">
+      <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl p-10 flex flex-col items-center gap-6 max-w-4xl w-full text-center">
         {/* Header principal */}
         <Image
           src="/images/logo.webp"
@@ -80,19 +80,13 @@ export default function Home() {
           />
         </div>
       </section>
-
-      <footer className="mt-20 w-full bg-green-900 text-green-100 py-8 text-center">
-        <p>SmartKids Clínica | Rua das Flores, 123 - São Paulo, SP</p>
-        <p>Email: contato@smartkids.com | Telefone: (11) 99999-9999</p>
-        <p className="mt-2 text-sm">© 2025 SmartKids. Todos os direitos reservados.</p>
-      </footer>
     </main>
   );
 }
 
 function ServiceCard({ title, description, icon }: { title: string; description: string; icon: string }) {
   return (
-    <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow duration-300 cursor-default">
+    <div className="bg-white dark:bg-[#1a1a1a] rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow duration-300 cursor-default">
       <div className="text-5xl mb-4">{icon}</div>
       <h3 className="text-xl font-semibold text-green-900 mb-2">{title}</h3>
       <p className="text-green-700">{description}</p>
@@ -102,7 +96,7 @@ function ServiceCard({ title, description, icon }: { title: string; description:
 
 function Testimonial({ quote, author }: { quote: string; author: string }) {
   return (
-    <blockquote className="bg-white rounded-xl shadow-md p-6 mx-auto max-w-xl italic text-green-800">
+    <blockquote className="bg-white dark:bg-[#1a1a1a] rounded-xl shadow-md p-6 mx-auto max-w-xl italic text-green-800">
       <p>“{quote}”</p>
       <footer className="mt-4 font-semibold text-green-900">- {author}</footer>
     </blockquote>

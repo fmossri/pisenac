@@ -1,53 +1,94 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 
 export default function ConfirmaConsulta() {
+  const { data: session, status } = useSession();
   const [consultas, setConsultas] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [mensagem, setMensagem] = useState('');
 
-  const consultasSimuladas = [
-    { id: 1, paciente: 'João Silva', data: '2025-05-20', hora: '10:00', status: 'Pendente' },
-    { id: 2, paciente: 'Maria Souza', data: '2025-05-20', hora: '14:00', status: 'Pendente' },
-    { id: 3, paciente: 'Carlos Oliveira', data: '2025-05-21', hora: '09:00', status: 'Confirmada' },
-  ];
-
   useEffect(() => {
-    setConsultas(consultasSimuladas.filter(consulta => consulta.status === 'Pendente'));
+    const fetchConsultas = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/history?idUsuario=' + session.user?.id, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const data = await response.json();
+        setConsultas(data.filter((consulta: any) => !consulta.dtConfirmacao));
+      } catch (error) {
+        setMensagem('Erro ao buscar consultas. Tente novamente.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConsultas();
   }, []);
 
-  const handleConfirmarConsulta = async (id: number) => {
+  const handleConfirmarConsulta = async (idHistorico: number) => {
     setLoading(true);
     setMensagem('Confirmando consulta...');
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const consulta = consultas.find(c => c.idHistorico === idHistorico);
+      if (!consulta) {
+        setMensagem('Consulta não encontrada.');
+        return;
+      }
 
-      setConsultas(consultas.map((consulta) =>
-        consulta.id === id ? { ...consulta, status: 'Confirmada' } : consulta
-      ));
+      const now = new Date();
+      const data = now.toISOString().split('T')[0];
+      const hora = now.toTimeString().slice(0, 5);
+      const dtConfirmacao = `${data}T${hora}:00`;
 
-      setMensagem('Consulta confirmada com sucesso!');
+      const response = await fetch(`/api/confirmacao`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idHistorico: idHistorico,
+          Paciente: consulta.Paciente,
+          Profissional: consulta.Profissional,
+          dtConfirmacao,
+          dtAtendimento: consulta.dtAtendimento,
+          historico: null
+        }),
+      });
+
+      if (response.ok) {
+        setConsultas(consultas.filter((consulta) => consulta.idHistorico !== idHistorico));
+        setMensagem('Consulta confirmada com sucesso!');
+      } else {
+        const errorData = await response.json();
+        setMensagem(errorData.error || 'Erro ao confirmar consulta. Tente novamente.');
+      }
     } catch (err) {
+      console.error('Error:', err);
       setMensagem('Erro ao confirmar consulta. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancelarConsulta = async (id: number) => {
+  const handleCancelarConsulta = async (idHistorico: number) => {
     setLoading(true);
     setMensagem('Cancelando consulta...');
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch(`/api/confirmacao?idHistorico=${idHistorico}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-      setConsultas(consultas.map((consulta) =>
-        consulta.id === id ? { ...consulta, status: 'Cancelada' } : consulta
-      ));
-
-      setMensagem('Consulta cancelada com sucesso!');
+      if (response.ok) {
+        setConsultas(consultas.filter((consulta) => consulta.idHistorico !== idHistorico));
+        setMensagem('Consulta cancelada com sucesso!');
+      } else {
+        setMensagem('Erro ao cancelar consulta. Tente novamente.');
+      }
     } catch (err) {
       setMensagem('Erro ao cancelar consulta. Tente novamente.');
     } finally {
@@ -56,38 +97,37 @@ export default function ConfirmaConsulta() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex flex-col items-center justify-center font-[family-name:var(--font-geist-sans)]">
-      <div className="bg-white rounded-2xl shadow-xl p-10 flex flex-col items-center gap-6 max-w-4xl w-200 text-center">
-        <h1 className="text-3xl font-bold text-gray-800">Confirmação de Consultas Pendentes</h1>
+      <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl p-4 flex flex-col items-center gap-3 max-w-lg w-full text-center">
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Confirmação de Consultas</h1>
 
         {mensagem && (
-          <p className={`mt-4 text-sm ${mensagem.includes('sucesso') ? 'text-green-500' : 'text-red-500'}`}>
+          <p className={`mt-4 text-sm ${mensagem.includes('sucesso') ? 'text-green-500 dark:text-green-300' : 'text-red-500 dark:text-red-300'}`}>
             {mensagem}
           </p>
         )}
 
-        {loading && <p className="text-gray-600">Aguarde...</p>}
+        {loading && <p className="text-gray-600 dark:text-gray-300">Aguarde...</p>}
 
-        <div className="w-150 space-y-4 mt-2">
+        <div className="w-full space-y-2 mt-2">
           {consultas.length === 0 ? (
-            <p className="text-gray-600">Não há consultas pendentes no momento.</p>
+            <p className="text-gray-600 dark:text-gray-300">Não há pedidos de consulta pendentes.</p>
           ) : (
             consultas.map((consulta) => (
-              <div key={consulta.id} className="bg-gray-100 p-4 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold text-gray-800">{consulta.paciente}</h2>
-                <p className="text-gray-600">Data: {consulta.data}</p>
-                <p className="text-gray-600">Hora: {consulta.hora}</p>
-                <p className="text-sm text-yellow-500">Status: {consulta.status}</p>
+              <div key={consulta.idHistorico} className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-4 rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{consulta.paciente.nome} {consulta.paciente.sobrenome}</h2>
+                <p className="text-gray-600 dark:text-gray-300">Data: {new Date(consulta.dtAtendimento).toLocaleDateString()}</p>
+                <p className="text-gray-600 dark:text-gray-300">Hora: {new Date(consulta.dtAtendimento).toLocaleTimeString()}</p>
+                <p className="text-sm text-yellow-500 dark:text-yellow-300">Status: {consulta.status}</p>
 
                 <div className="flex justify-between mt-4">
                   <button
-                    onClick={() => handleConfirmarConsulta(consulta.id)}
+                    onClick={() => handleConfirmarConsulta(consulta.idHistorico)}
                     className="bg-sky-500 hover:bg-sky-600 text-white py-2 px-4 rounded-xl transition duration-300"
                   >
                     Confirmar
                   </button>
                   <button
-                    onClick={() => handleCancelarConsulta(consulta.id)}
+                    onClick={() => handleCancelarConsulta(consulta.idHistorico)}
                     className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-xl transition duration-300"
                   >
                     Cancelar
@@ -98,6 +138,5 @@ export default function ConfirmaConsulta() {
           )}
         </div>
       </div>
-    </main>
   );
 }

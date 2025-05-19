@@ -1,6 +1,7 @@
 var User = require("../models/User");
 var PasswordToken = require("../models/PasswordToken");
 var jwt = require("jsonwebtoken");
+var Cadastro = require("../models/Cadastro");
 
 var secret = "adsuasgdhjasgdhjdgahjsg12hj3eg12hj3g12hj3g12hj3g123";
 
@@ -9,29 +10,51 @@ var bcrypt = require("bcrypt");
 
 class UserController{
     async create(req, res){
-        var {email,senha,tipoUsuario} = req.body;
-        
-        if(email == undefined){
-            res.status(400);
-            res.json({err: "O e-mail é inválido!"})
-            return;
+        try {
+            var {email,senha,tipoUsuario, nome, sobrenome, documento, endereco, cep, docProfSaude} = req.body;
+            
+            if(email == undefined){
+                res.status(400);
+                res.json({err: "O e-mail é inválido!"})
+                return;
+            }
+
+            const documentoExists = await Cadastro.findByDocumento(documento);
+            if(documentoExists){
+                res.status(406);
+                res.json({err: "O documento já está cadastrado!"})
+                return;
+            }
+
+            var emailExists = await User.findEmail(email);
+
+            if(emailExists){
+                res.status(406);
+                res.json({err: "O e-mail já está cadastrado!"})
+                return;
+            }
+
+            await User.new(email,senha,tipoUsuario);
+            var user = await User.findByEmail(email);
+
+            await Cadastro.new(
+            user.idUsuario,
+            nome,
+            sobrenome,
+            documento,
+            endereco,
+            cep,
+            docProfSaude
+            );
+            
+            res.status(200);
+            res.send({"message": "Usuário criado com sucesso!"});
+        } catch (error) {
+            console.error('Erro ao criar usuário:', error);
+            res.status(500).json({error: "Erro interno do servidor"});
         }
-
-        var emailExists = await User.findEmail(email);
-
-        if(emailExists){
-            res.status(406);
-            res.json({err: "O e-mail já está cadastrado!"})
-            return;
-        }
-
-        
-        await User.new(email,senha,tipoUsuario);
-        
-        res.status(200);
-        res.send("Tudo OK!");
     }
-
+    
 
     async index(req, res){
         var users = await User.findAll();
@@ -50,13 +73,19 @@ class UserController{
         }
     }
 
+    async findByTipo(req, res){
+        var tipoUsuario = req.params.tipoUsuario;
+        var users = await User.findByTipo(tipoUsuario);
+        res.json(users);
+    }
+
     async edit(req, res){
         var {idUsuario, email, senha , tipoUsuario} = req.body;
         var result = await User.update(idUsuario,email,senha,tipoUsuario);
         if(result != undefined){
             if(result.status){
                 res.status(200);
-                res.send("Tudo OK!");
+                res.send({"message": "Usuário atualizado com sucesso!"});
             }else{
                 res.status(406);
                 res.send(result.err)
@@ -74,7 +103,7 @@ class UserController{
 
         if(result.status){
             res.status(200);
-            res.send("Tudo OK!");
+            res.send({"message": "Usuário removido com sucesso!"});
         }else{
             res.status(406);
             res.send(result.err);
@@ -109,33 +138,39 @@ class UserController{
     }
     */
     async login(req, res){
-        var {email, senha } = req.body;
+        try {
+            var {email, senha } = req.body;
+            console.log('Login attempt for email:', email);
 
-        var user = await User.findByEmail(email);
+            var user = await User.findByEmail(email);
+            console.log('User found:', user ? 'yes' : 'no');
 
-        if(user != undefined){
+            if(user != undefined){
+                var resultado = await bcrypt.compare(senha, user.senha);
 
-            var resultado = await bcrypt.compare(password,user.password);
-
-            if(resultado){
-
-                var token = jwt.sign({ email: user.email, role: user.role }, secret);
-
-                res.status(200);
-                res.json({token: token});
-
+                if(resultado){
+                    var token = jwt.sign({ email: user.email, role: user.role }, secret);
+                    res.status(200);
+                    res.json({
+                        token: token,
+                        user: {
+                            idUsuario: user.idUsuario,
+                            email: user.email,
+                            tipoUsuario: user.tipoUsuario
+                        }
+                    });
+                }else{
+                    res.status(406);
+                    res.send("Senha incorreta");
+                }
             }else{
-                res.status(406);
-                res.send("Senha incorreta");
+                res.json({status: false});
             }
-
-        }else{
-
-            res.json({status: false});
-
+        } catch (error) {
+            console.error('Login error:', error);
+            res.status(500).json({error: "Erro interno do servidor"})
         }
     }
-
 }
 
 module.exports = new UserController();

@@ -1,24 +1,15 @@
+require('dotenv').config();
+
 const knex = require('./connection'); // aqui você importa sua configuração do Knex
 
 async function criarTabelas() {
-  const existeTipo = await knex.schema.hasTable('tipousuarios');
-  if (!existeTipo) {
-    await knex.schema.createTable('tipousuarios', (table) => {
-      table.increments('idTipoUsuario').primary();
-      table.string('descricao', 45).notNullable().unique();
-    });
-    console.log('Tabela tipousuarios criada.');
-  }
-
   const existeUsuarios = await knex.schema.hasTable('usuarios');
   if (!existeUsuarios) {
     await knex.schema.createTable('usuarios', (table) => {
       table.increments('idUsuario').primary();
       table.string('email', 50).notNullable().unique();
       table.string('senha', 250).notNullable();
-      table.integer('tipoUsuario').unsigned().notNullable()
-        .references('idTipoUsuario').inTable('tipousuarios')
-        .onDelete('RESTRICT').onUpdate('CASCADE');
+      table.integer('tipoUsuario').unsigned().notNullable();
     });
     console.log('Tabela usuarios criada.');
   }
@@ -50,10 +41,10 @@ async function criarTabelas() {
       table.integer('Profissional').unsigned().notNullable()
         .references('idUsuario').inTable('usuarios')
         .onDelete('RESTRICT').onUpdate('CASCADE');
-      table.dateTime('dtAgendamento');
-      table.dateTime('dtConfirmacao');
-      table.dateTime('dtAtendimento');
-      table.text('historico', 'longtext').notNullable();
+      table.datetime('dtAgendamento').defaultTo(knex.fn.now());
+      table.datetime('dtConfirmacao').nullable();
+      table.datetime('dtAtendimento').notNullable();
+      table.text('historico', 'longtext');
     });
     console.log('Tabela historicos criada.');
   }
