@@ -90,7 +90,7 @@ echo "NEXT_PUBLIC_API_URL=http://localhost:3001" > .env
 ### 1. Inicie o Backend
 ```bash
 cd BackendSmartKids/Backend
-npm start
+node index.js
 ```
 O servidor backend estará disponível em `http://localhost:3001`
 
