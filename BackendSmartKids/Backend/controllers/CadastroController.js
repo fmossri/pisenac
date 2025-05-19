@@ -31,9 +31,9 @@ class CadastroController{
         res.json(cadastros);
     }
 
-    async findIdCadastro(req, res){
-        var idCadastro = req.params.idCadastro;
-        var cadastros = await cadastro.findById(idCadastro);
+    async findIdUsuario(req, res){
+        var idUsuario = req.params.idUsuario;
+        var cadastros = await cadastro.findByUsuario(idUsuario);
         if(cadastros == undefined){
             res.status(404);
             res.json({});

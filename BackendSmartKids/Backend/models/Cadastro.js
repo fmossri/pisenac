@@ -13,7 +13,7 @@ class Cadastro{
 
     async findById(idCadastro){
         try{
-            var result = await knex.select(["idCadastro","nome","sobrenome","documento","endereco","cep"]).where({idUsuario:idCadastro}).table("cadastro");
+            var result = await knex.select(["idCadastro","nome","sobrenome","documento","endereco","cep"]).where({idUsuario:idCadastro}).table("cadastros");
             
             if(result.length > 0){
                 return result[0];
@@ -27,13 +27,36 @@ class Cadastro{
         }
     }
 
-    async new(idCadastro,nome,sobrenome,documento,endereco,cep){
+    async findByUsuario(idUsuario){
         try{
-            var hash = await bcrypt.hash(senha, 10);
-            await knex.insert({idCadastro,nome,sobrenome,documento,endereco,cep}).table("cadastros");
+            var result = await knex.select("*").from("cadastros").where({Usuario: idUsuario});
+            return result.length > 0 ? result[0] : null;
         }catch(err){
             console.log(err);
+            return null;
         }
+    }
+    
+    async findByDocumento(documento) {
+        try{
+            var result = await knex.select("*").from("cadastros").where({documento: documento});
+            return result.length > 0 ? result[0] : null;
+        }catch(err){
+            console.log(err);
+            return null;
+        }
+    }
+
+    async new(Usuario, nome, sobrenome, documento, endereco, cep, docProfSaude) {
+        await knex.insert({
+            Usuario,
+            nome,
+            sobrenome,
+            documento,
+            endereco,
+            cep,
+            docProfSaude
+        }).table("cadastros");
     }   
     async update(idCadastro,nome,sobrenome,documento,endereco,cep){
 

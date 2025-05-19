@@ -27,43 +27,67 @@ class Historico{
         }
     }
 
-    async new(idHistorico,Paciente,Profissional,dtAgendamento,dtConfirmacao,dtAtendimento,historico){
+    async findByPaciente(Paciente){
         try{
-            
-            await knex.insert({idHistorico,Paciente,Profissional,dtAgendamento,dtConfirmacao,dtAtendimento,historico}).table("historicos");
+            var result = await knex.select(["idHistorico","Paciente","Profissional","dtAgendamento","dtConfirmacao","dtAtendimento","historico"]).where({Paciente:Paciente}).table("historicos");
+            return result;
         }catch(err){
+            console.log(err);
+            return [];
+        }
+    }
+
+
+    async findByProfissional(Profissional){
+        try{
+            var result = await knex.select(["idHistorico","Paciente","Profissional","dtAgendamento","dtConfirmacao","dtAtendimento","historico"]).where({Profissional:Profissional}).table("historicos");
+            return result;
+        }catch(err){
+            console.log(err);
+            return [];
+        }
+    }
+    
+
+    async new(Paciente, Profissional, dtConfirmacao, dtAtendimento, historico) {
+        if (typeof historico !== 'string' && historico !== null) {
+            historico = null;
+        }
+        try {
+            await knex.insert({ 
+                Paciente, 
+                Profissional, 
+                dtConfirmacao, 
+                dtAtendimento, 
+                historico 
+            }).table("historicos");
+        } catch (err) {
             console.log(err);
         }
     }   
-    async update(idHistorico,Paciente,Profissional,dtAgendamento,dtConfirmacao,dtAtendimento,historico){
+    async update(idHistorico, Paciente, Profissional, dtConfirmacao, dtAtendimento, historico) {
+        if (typeof historico !== 'string' && historico !== null) {
+            historico = null;
+        }
+        
+        var existing = await this.findById(idHistorico);
 
-        var historico = await this.findById(idHistorico);
-
-        if(historico != undefined){
-
-            var editHitorico = {};
-
-            if(idCadastro != undefined){ 
-                if(idHistorico != historico.idHistorico){
-                   var result = await this.findById(idHistorico);
-                   if(result == false){
-                        editHistorico.idHistorico = idHistorico;
-                   }else{
-                        return {status: false,err: "Já está cadastrado"}
-                   }
-                }
-            }
-
-
+        if(existing != undefined){
             try{
-                await knex.update({idHistorico,Paciente,Profissional,dtAgendamento,dtConfirmacao,dtAtendimento,historico}).table("historicos");
+                await knex.update({
+                    Paciente,
+                    Profissional,
+                    dtConfirmacao,
+                    dtAtendimento,
+                    historico
+                }).where({idHistorico: idHistorico}).table("historicos");
                 return {status: true}
             }catch(err){
+                console.log('Historico Model - Database error:', err);
                 return {status: false,err: err}
             }
-            
         }else{
-            return {status: false,err: "O usuário não existe!"}
+            return {status: false,err: "O histórico não existe!"}
         }
     }
 

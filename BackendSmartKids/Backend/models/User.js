@@ -29,6 +29,24 @@ class User{
         }
     }
 
+    async findByTipo(tipoUsuario){
+        try{
+            return await knex('usuarios')
+                .leftJoin('cadastros', 'usuarios.idUsuario', 'cadastros.Usuario')
+                .select(
+                    'usuarios.idUsuario',
+                    'usuarios.email',
+                    'usuarios.tipoUsuario',
+                    'cadastros.nome',
+                    'cadastros.sobrenome'
+                )
+                .where('usuarios.tipoUsuario', tipoUsuario);
+        }catch(err){
+            console.log(err);
+            return [];
+        }
+    }
+    
     async findById(idUsuario){
         try{
             var result = await knex.select(["idUsuario","email","senha","tipoUsuario"]).where({idUsuario:idUsuario}).table("usuarios");
@@ -49,8 +67,9 @@ class User{
         try{
             var hash = await bcrypt.hash(senha, 10);
             await knex.insert({email,senha: hash,tipoUsuario}).table("usuarios");
+            console.log('Usuário criado com sucesso!');
         }catch(err){
-            console.log(err);
+            console.log('Erro ao criar usuário:', err);
         }
     }   
 
@@ -127,7 +146,7 @@ class User{
 
     async changePassword(newPassword,idUsuario,token){
         var hash = await bcrypt.hash(newPassword, 10);
-        await knex.update({password: hash}).where({idUsuario: idUsuario}).table("usuarios");
+        await knex.update({senha: hash}).where({idUsuario: idUsuario}).table("usuarios");
         await PasswordToken.setUsed(token);
     }
 }
