@@ -14,7 +14,7 @@ cd pisenac
 ```
 
 ### 2. Configuração do MySQL
-1. Instale o MySQL no WSL2 (Ubuntu):
+1. Instale o MySQL (Ubuntu):
 ```bash
 sudo apt update
 sudo apt install mysql-server
